@@ -4,99 +4,135 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>漲停貓貓</title>
-<meta name="theme-color" content="#0b0a0c">
+<meta name="theme-color" content="#0e0912">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="漲停貓貓">
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="assets/icon-192.png">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<link rel="icon" href="assets/icon-192.png">
 <style>
+  /* 配色：深紫黑底 ＋ 漲停粉（主）／奶油（副）＋ 紫（中性）；只有主按鈕和漲停元素用飽和粉 */
   :root {
-    --bg: #0b0a0c; --panel: #16131a; --line: #2b2226;
-    --up: #ff3d6e; --up-d: #5a1a2a; --cream: #ffe8c2; --text: #f2e8dc; --mute: #8d7f86;
+    --bg: #0e0912; --glass: rgba(255,255,255,.035); --glass-2: rgba(255,255,255,.06); --edge: rgba(255,255,255,.08);
+    --pink: #ff3d7f; --pink-2: #ff7aa8; --cream: #ffe8c2; --violet: #8a5cff;
+    --text: #f6eef2; --mute: #9a8ea3;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-  html, body { margin: 0; background: var(--bg); color: var(--text);
-    font-family: -apple-system, "PingFang TC", "Noto Sans TC", system-ui, sans-serif; }
-  body { height: 100dvh; display: flex; flex-direction: column; overflow-y: auto;
-    padding: env(safe-area-inset-top) 16px calc(env(safe-area-inset-bottom) + 16px); }
-  header { display: flex; align-items: baseline; gap: 10px; padding: 14px 0 10px; }
-  header h1 { margin: 0; font-size: 22px; letter-spacing: 1px; }
-  header h1 b { color: var(--up); }
-  header small { color: var(--mute); font-size: 12px; }
+  html, body { margin: 0; color: var(--text); background: var(--bg);
+    font-family: -apple-system, "SF Pro Rounded", "PingFang TC", "Noto Sans TC", system-ui, sans-serif; }
+  body {
+    height: 100dvh; display: flex; flex-direction: column; overflow-y: auto;
+    padding: calc(env(safe-area-inset-top) + 6px) 16px calc(env(safe-area-inset-bottom) + 14px);
+    background:
+      radial-gradient(120% 60% at 0% 0%, rgba(255,61,127,.20), transparent 60%),
+      radial-gradient(90% 50% at 100% 100%, rgba(138,92,255,.16), transparent 60%),
+      var(--bg);
+  }
 
-  #stage { position: relative; flex: 1 1 0; min-height: 260px; display: flex; align-items: center; justify-content: center;
-    background: var(--panel); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; touch-action: none; }
-  #view { max-width: 100%; max-height: 100%; display: none; border-radius: 6px; }
-  #empty { text-align: center; padding: 24px; color: var(--mute); line-height: 1.7; }
-  #empty .big { font-size: 56px; }
-  #hint { position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); font-size: 12px;
-    background: rgba(0,0,0,.55); padding: 4px 10px; border-radius: 99px; color: var(--cream); display: none; white-space: nowrap; }
+  /* ── 頂部 ── */
+  header { display: flex; align-items: center; gap: 12px; padding: 10px 2px 14px; }
+  header img { width: 40px; height: 40px; border-radius: 12px; box-shadow: 0 6px 18px rgba(255,61,127,.35); }
+  header h1 { margin: 0; font-size: 22px; font-weight: 900; letter-spacing: 2px;
+    background: linear-gradient(90deg, var(--cream), var(--pink-2) 70%); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .chip { margin-left: auto; font-size: 12px; font-weight: 800; color: var(--pink); padding: 5px 10px; border-radius: 99px;
+    background: rgba(255,61,127,.12); border: 1px solid rgba(255,61,127,.35); animation: pulse 1.6s ease-in-out infinite; }
+  @keyframes pulse { 50% { box-shadow: 0 0 0 6px rgba(255,61,127,0); background: rgba(255,61,127,.22); } }
 
+  /* ── 舞台 ── */
+  #stage { position: relative; flex: 1 1 0; min-height: 280px; display: flex; align-items: center; justify-content: center;
+    background: var(--glass); border: 1px solid var(--edge); border-radius: 26px; overflow: hidden; touch-action: none;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.06), 0 20px 50px rgba(0,0,0,.35); }
+  #stage.empty { cursor: pointer; }
+  #stage.empty::before { content: ""; position: absolute; inset: 12px; border-radius: 18px; border: 2px dashed rgba(255,122,168,.28); pointer-events: none; }
+  #stage.empty:active { transform: scale(.99); }
+  #stage.drag { background: rgba(255,61,127,.08); }
+  #view { max-width: 100%; max-height: 100%; display: none; border-radius: 10px; }
+  #empty { display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 24px; text-align: center; pointer-events: none; }
+  #empty img { width: min(78%, 330px); filter: drop-shadow(0 18px 24px rgba(255,61,127,.28)); animation: dance 1.1s ease-in-out infinite; transform-origin: 50% 90%; }
+  @keyframes dance { 0%,100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-10px) rotate(2deg); } }
+  #empty .say { font-size: 21px; font-weight: 900; letter-spacing: 1px; color: var(--cream); }
+  #hint { position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); font-size: 12px; font-weight: 700;
+    background: rgba(14,9,18,.75); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    padding: 6px 12px; border-radius: 99px; color: var(--cream); border: 1px solid var(--edge); display: none; white-space: nowrap; }
+
+  /* ── 控制列 ── */
   .row { display: flex; gap: 10px; margin-top: 12px; align-items: center; }
-  button, .btn { flex: 1; appearance: none; border: 0; border-radius: 14px; padding: 15px 10px; font-size: 16px; font-weight: 700;
-    color: var(--text); background: var(--panel); border: 1px solid var(--line); text-align: center; cursor: pointer; }
-  button.primary { background: var(--up); border-color: var(--up); color: #fff; }
-  button.cream { background: var(--cream); border-color: var(--cream); color: #1a1215; }
-  button:disabled { opacity: .4; }
+  .btn, button { flex: 1; appearance: none; border-radius: 18px; padding: 16px 10px; font-size: 16px; font-weight: 800; letter-spacing: 1px;
+    color: var(--text); background: var(--glass-2); border: 1px solid var(--edge); text-align: center; cursor: pointer;
+    transition: transform .1s ease, opacity .2s; font-family: inherit; }
+  .btn:active, button:active { transform: scale(.97); }
+  button.primary { color: #fff; border: 0; background: linear-gradient(135deg, var(--pink), #ff6a5c);
+    box-shadow: 0 10px 26px rgba(255,61,127,.38), inset 0 1px 0 rgba(255,255,255,.25); }
+  button.cream { color: #2a1520; border: 0; background: var(--cream); box-shadow: 0 10px 24px rgba(255,232,194,.18); }
+  button:disabled { opacity: .35; box-shadow: none; }
   input[type=file] { display: none; }
-  label.slider { flex: 1; display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--mute); }
-  input[type=range] { flex: 1; accent-color: var(--up); }
+  .pill { flex: 1; display: flex; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 16px;
+    background: var(--glass); border: 1px solid var(--edge); font-size: 13px; font-weight: 700; color: var(--mute); }
+  input[type=range] { flex: 1; accent-color: var(--pink); }
+  .ghost { flex: 0 0 auto; padding: 12px 14px; font-size: 13px; border-radius: 14px; }
 
-  #progress { height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; margin-top: 12px; display: none; }
-  #progress i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--up), var(--cream)); }
-  #status { font-size: 13px; color: var(--mute); text-align: center; min-height: 18px; margin-top: 8px; }
+  #progress { position: relative; height: 8px; background: var(--glass-2); border-radius: 99px; overflow: hidden; margin-top: 14px; display: none; }
+  #progress i { display: block; height: 100%; width: 0; border-radius: 99px; background: linear-gradient(90deg, var(--pink), var(--cream)); transition: width .1s linear; }
+  #status { font-size: 13px; font-weight: 600; color: var(--mute); text-align: center; min-height: 18px; margin-top: 10px; }
 
-  #result { position: fixed; inset: 0; background: rgba(5,4,6,.94); display: none; flex-direction: column;
-    padding: calc(env(safe-area-inset-top) + 12px) 16px calc(env(safe-area-inset-bottom) + 16px); z-index: 10; }
-  #result video { flex: 1; min-height: 0; width: 100%; object-fit: contain; border-radius: 12px; background: #000; }
-  #result p { font-size: 12px; color: var(--mute); text-align: center; margin: 10px 0 0; line-height: 1.6; }
-  details { margin-top: 10px; font-size: 13px; color: var(--mute); }
-  details summary { cursor: pointer; padding: 4px 0; }
+  details { margin-top: 6px; font-size: 13px; color: var(--mute); }
+  details summary { cursor: pointer; padding: 6px 2px; list-style: none; font-weight: 700; }
+  details summary::before { content: "⚙ "; }
+  select { flex: 1; background: transparent; color: var(--text); border: 0; font: inherit; }
+
+  /* ── 結果 ── */
+  #result { position: fixed; inset: 0; display: none; flex-direction: column; z-index: 10;
+    padding: calc(env(safe-area-inset-top) + 14px) 16px calc(env(safe-area-inset-bottom) + 16px);
+    background: rgba(10,6,13,.86); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
+  #result h2 { margin: 0 0 12px; font-size: 18px; font-weight: 900; color: var(--cream); text-align: center; letter-spacing: 1px; }
+  #result video { flex: 1; min-height: 0; width: 100%; object-fit: contain; border-radius: 20px; background: #000; border: 1px solid var(--edge); }
+  #result p { font-size: 12px; color: var(--mute); text-align: center; margin: 12px 0 0; }
 </style>
 </head>
 <body>
 <header>
-  <h1>漲停<b>貓貓</b></h1>
-  <small>丟一張漲停截圖，出一支貓貓影片</small>
+  <img src="assets/icon-192.png" alt="">
+  <h1>漲停貓貓</h1>
+  <span class="chip">▲ 10.00%</span>
 </header>
 
-<div id="stage">
-  <div id="empty"><div class="big">🐱📈</div>先選一張漲停截圖<br><small>截圖只在你的手機裡處理，不會上傳</small></div>
+<label id="stage" class="empty" for="pick">
+  <div id="empty"><img src="assets/cat_hero.png" alt=""><div class="say">給我你的漲停持股吧！！</div></div>
   <canvas id="view"></canvas>
   <div id="hint">拖曳移動貓咪・兩指縮放</div>
-</div>
+</label>
 
 <div class="row" id="adjustRow" style="display:none">
-  <label class="slider">大小 <input id="scale" type="range" min="0.4" max="1.3" step="0.01" value="0.85"></label>
-  <button id="reset" style="flex:0 0 auto;padding:10px 14px;font-size:13px">重設位置</button>
+  <label class="pill">大小 <input id="scale" type="range" min="0.4" max="1.3" step="0.01" value="0.85"></label>
+  <button id="reset" class="ghost">重設位置</button>
 </div>
 
 <div class="row">
-  <label class="btn" for="pick">📷 選截圖</label>
+  <label class="btn" for="pick" id="pickBtn">選截圖</label>
   <input id="pick" type="file" accept="image/*">
-  <button id="make" class="primary" disabled>🎬 產生影片</button>
+  <button id="make" class="primary" disabled>產生影片</button>
 </div>
 <div id="progress"><i></i></div>
 <div id="status"></div>
 
 <details>
   <summary>進階設定</summary>
-  <div class="row"><label class="slider">去綠幕強度 <input id="key" type="range" min="0.05" max="0.5" step="0.01" value="0.22"></label></div>
-  <div class="row"><label class="slider">輸出寬度
-    <select id="outW" style="flex:1;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:6px">
-      <option value="720" selected>720（快、檔案小）</option><option value="1080">1080（清楚）</option></select></label></div>
-  <div class="row"><label class="btn" for="pickVid" style="font-size:13px;padding:10px">換別支綠幕影片</label>
+  <div class="row"><label class="pill">去綠幕強度 <input id="key" type="range" min="0.05" max="0.5" step="0.01" value="0.22"></label></div>
+  <div class="row"><label class="pill">輸出寬度
+    <select id="outW"><option value="720" selected>720（快、檔案小）</option><option value="1080">1080（清楚）</option></select></label></div>
+  <div class="row"><label class="btn" for="pickVid" style="font-size:13px;padding:12px">換別支綠幕影片</label>
     <input id="pickVid" type="file" accept="video/*"></div>
 </details>
 
 <div id="result">
+  <h2>漲停貓貓出爐</h2>
   <video id="out" playsinline controls loop></video>
   <div class="row">
     <button id="again">返回調整</button>
-    <button id="save" class="cream">💾 儲存／分享</button>
+    <button id="save" class="cream">儲存影片</button>
   </div>
-  <p id="saveHint">iPhone：按「儲存／分享」→ 選「儲存影片」就會進相簿</p>
+  <p>iPhone：按「儲存影片」→ 分享選單選「儲存影片」就會進相簿</p>
 </div>
 
 <video id="cat" src="assets/cats.mp4" playsinline muted loop preload="auto" crossorigin="anonymous" style="display:none"></video>
@@ -171,17 +207,25 @@
   }
 
   // ── 選截圖 ──
-  $('pick').onchange = async (e) => {
-    const f = e.target.files[0]; if (!f) return;
+  async function loadShot(f) {
+    if (!f || !f.type.startsWith('image/')) return;
     const img = new Image(); img.src = URL.createObjectURL(f); await img.decode();
     st.img = img; setSize(+$('outW').value);
     gl.bindTexture(gl.TEXTURE_2D, tBg); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, img);
     resetPos();
     $('empty').style.display = 'none'; view.style.display = 'block'; $('hint').style.display = 'block';
+    const stage = $('stage'); stage.classList.remove('empty'); stage.removeAttribute('for');   // 有圖之後，點舞台是拖曳貓咪，不再開檔案
+    $('pickBtn').textContent = '換一張';
     $('adjustRow').style.display = 'flex'; $('make').disabled = false; $('status').textContent = '';
     cat.muted = true; cat.play().catch(() => {});
     setTimeout(() => $('hint').style.display = 'none', 3500);
-  };
+  }
+  $('pick').onchange = (e) => { loadShot(e.target.files[0]); e.target.value = ''; };
+  // 電腦版：截圖直接拖進框裡
+  const stageEl = $('stage');
+  stageEl.addEventListener('dragover', (e) => { e.preventDefault(); stageEl.classList.add('drag'); });
+  stageEl.addEventListener('dragleave', () => stageEl.classList.remove('drag'));
+  stageEl.addEventListener('drop', (e) => { e.preventDefault(); stageEl.classList.remove('drag'); loadShot(e.dataTransfer.files[0]); });
   $('outW').onchange = () => { if (!st.img) return; const { s, cx, cy } = st; setSize(+$('outW').value); Object.assign(st, { s, cx, cy }); };
   $('scale').oninput = (e) => st.s = +e.target.value;
   $('key').oninput = (e) => st.key = +e.target.value;
@@ -215,7 +259,7 @@
   $('make').onclick = async () => {
     if (!window.MediaRecorder || !view.captureStream) { $('status').textContent = '這個瀏覽器不支援錄影，請用 iPhone Safari 或 Android Chrome'; return; }
     st.recording = true; $('make').disabled = true; $('pick').disabled = true;
-    $('progress').style.display = 'block'; $('status').textContent = '錄製中…請不要切換 App';
+    $('progress').style.display = 'block'; $('status').textContent = '貓貓跳舞中…（請不要切換 App）';
     try {
       if (!ac) { ac = new (window.AudioContext || window.webkitAudioContext)(); srcNode = ac.createMediaElementSource(cat); dest = ac.createMediaStreamDestination(); srcNode.connect(dest); }
       await ac.resume();
@@ -228,7 +272,8 @@
       cat.pause(); cat.loop = false; cat.muted = false; cat.currentTime = 0;
       await new Promise((r) => cat.onseeked = r);
       rec.start(250); await cat.play();
-      const tick = setInterval(() => $('progress').firstElementChild.style.width = (100 * cat.currentTime / cat.duration).toFixed(1) + '%', 100);
+      const tick = setInterval(() => { const pct = 100 * cat.currentTime / cat.duration;
+        $('progress').firstElementChild.style.width = pct.toFixed(1) + '%'; $('status').textContent = `貓貓跳舞中… ${Math.round(pct)}%（請不要切換 App）`; }, 100);
       await new Promise((r) => cat.onended = r);
       await new Promise((r) => setTimeout(r, 150));
       rec.stop(); await done; clearInterval(tick);
